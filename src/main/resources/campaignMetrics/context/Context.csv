@@ -1,0 +1,4 @@
+auctionId,timestamp,publisher,application,country,userId,campaignId
+1001,178252628014,user,Paypal,Canada,CAN05,2001
+1002,178252928014,admin,Paypal,India,IND02,3004
+1003,178252728014,user1,Paypal,USA,US032,6002
