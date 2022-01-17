@@ -6,6 +6,8 @@ import com.s4m.datatest.util.RecordDeserializationSchema;
 import org.apache.flink.api.common.functions.ReduceFunction;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
+import org.apache.flink.streaming.api.windowing.assigners.TumblingProcessingTimeWindows;
+import org.apache.flink.streaming.api.windowing.time.Time;
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaConsumer08;
 
 import java.util.Properties;
@@ -39,6 +41,7 @@ public class RecordStreaming {
 
         stream = stream
                 .keyBy(value -> value)
+                .window(TumblingProcessingTimeWindows.of(Time.minutes(60)))
                 .reduce(new ReduceFunction<Record>() {
                     @Override
                     public Record reduce(Record value1, Record value2) throws Exception {
