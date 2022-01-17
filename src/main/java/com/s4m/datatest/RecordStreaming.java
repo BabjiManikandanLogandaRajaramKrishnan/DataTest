@@ -1,6 +1,7 @@
 package com.s4m.datatest;
 
 import com.s4m.datatest.entity.Record;
+import com.s4m.datatest.util.ConfigReader;
 import com.s4m.datatest.util.RecordDeserializationSchema;
 import org.apache.flink.api.common.functions.ReduceFunction;
 import org.apache.flink.streaming.api.datastream.DataStream;
@@ -9,17 +10,20 @@ import org.apache.flink.streaming.connectors.kafka.FlinkKafkaConsumer08;
 
 import java.util.Properties;
 
+import static com.s4m.datatest.Constants.BOOTSTRAP_SERVER;
+
 public class RecordStreaming {
 
     // Source https://nightlies.apache.org/flink/flink-docs-release-1.4/dev/connectors/kafka.html
 
-    public static void main(String[] args) throws Exception{
+    public static void main(String[] args) throws Exception {
 
-        String TOPIC_IN = "TOPIC-IN";
-        String BOOTSTRAP_SERVER = "localhost:9092";
+        Properties properties = ConfigReader.readConfig("flinkStreaming");
+
+        String TOPIC_IN = properties.getProperty("TOPIC");
 
         Properties props = new Properties();
-        props.put("bootstrap.servers", BOOTSTRAP_SERVER);
+        props.put("bootstrap.servers", properties.getProperty(BOOTSTRAP_SERVER));
         props.put("client.id", "flink-kafka-example");
 
         FlinkKafkaConsumer08<Record> kafkaConsumer = new FlinkKafkaConsumer08<>(TOPIC_IN, new RecordDeserializationSchema(), props);
@@ -33,16 +37,18 @@ public class RecordStreaming {
 
         //https://nightlies.apache.org/flink/flink-docs-master/docs/dev/datastream/operators/overview/
 
-        stream = stream.keyBy(value -> value).reduce(new ReduceFunction<Record>() {
-            @Override
-            public Record reduce(Record value1, Record value2) throws Exception {
-                if(value1.getTimestamp() > value2.getTimestamp()){
-                    return value1;
-                } else{
-                    return value2;
-                }
-            }
-        });
+        stream = stream
+                .keyBy(value -> value)
+                .reduce(new ReduceFunction<Record>() {
+                    @Override
+                    public Record reduce(Record value1, Record value2) throws Exception {
+                        if (value1.getTimestamp() > value2.getTimestamp()) {
+                            return value1;
+                        } else {
+                            return value2;
+                        }
+                    }
+                });
 
         stream.print();
 

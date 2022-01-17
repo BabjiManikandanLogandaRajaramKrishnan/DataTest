@@ -12,6 +12,8 @@ public final class Constants {
     public static String EVENT_SOURCE_PATH = "EVENT_SOURCE_PATH";
     public static String TARGET_PATH = "TARGET_PATH";
 
+    public static String BOOTSTRAP_SERVER = "BOOTSTRAP_SERVER";
+
 
 
 }

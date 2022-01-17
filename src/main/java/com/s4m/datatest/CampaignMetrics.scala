@@ -1,5 +1,7 @@
 package com.s4m.datatest
 
+import com.s4m.datatest.util.ConfigReader
+import com.s4m.datatest.Constants.{TARGET_PATH}
 import org.apache.spark.sql.SparkSession
 
 object CampaignMetrics{
@@ -13,6 +15,8 @@ object CampaignMetrics{
 
     val query: String = args(0)
 
+    val properties = ConfigReader.readConfig("campaignMetrics")
+
     val sparkSession = SparkSession
       .builder()
       .master("local")
@@ -20,7 +24,7 @@ object CampaignMetrics{
 
     val inputDf = sparkSession
       .read
-      .load("hdfs://data/eventMetrics/")
+      .load(properties.getProperty(TARGET_PATH))
 
     inputDf.createGlobalTempView("EVENT_METRICS")
 
