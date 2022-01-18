@@ -1,5 +1,6 @@
 package com.s4m.datatest;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.s4m.datatest.entity.Record;
 import com.s4m.datatest.util.ConfigReader;
 import com.s4m.datatest.util.RecordDeserializationSchema;
@@ -40,24 +41,33 @@ public class RecordStreaming {
         //https://nightlies.apache.org/flink/flink-docs-master/docs/dev/datastream/operators/overview/
 
         stream = stream
-                .keyBy(value -> value)
+                .keyBy(value -> value.getId())
                 .window(TumblingProcessingTimeWindows.of(Time.minutes(60)))
                 .reduce(new ReduceFunction<Record>() {
                     @Override
-                    public Record reduce(Record value1, Record value2) throws Exception {
-                        if (value1.getTimestamp() > value2.getTimestamp()) {
-                            return value1;
+                    public Record reduce(Record record1, Record record2) throws Exception {
+                        if (record1.getTimestamp() > record2.getTimestamp()) {
+                            return record1;
                         } else {
-                            return value2;
+                            return record2;
                         }
                     }
                 });
 
-        stream.print();
+        stream.map(x -> getObjectAsString(x)).print();
 
         env.enableCheckpointing(5000);
         env.execute("Flink Stream");
 
+    }
+
+    public static String getObjectAsString(Record object) {
+        ObjectMapper mapper = new ObjectMapper();
+        try {
+            return mapper.writeValueAsString(object);
+        } catch (Exception e) {
+            return null;
+        }
     }
 
 
